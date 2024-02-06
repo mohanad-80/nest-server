@@ -11,47 +11,50 @@ import { CreatePostDto } from "./dtos/create-post.dto";
 import { EditPostDto } from "./dtos/edit-post.dto";
 import { UpdateCommentsDto } from "./dtos/update-comments.dto";
 import { UpdateLikesDto } from "./dtos/update-likes.dto";
+import { PostsService } from "./posts.service";
+import { Post as PostI } from "./interfaces/post.interface";
 
 @Controller()
 export class PostsController {
+  constructor(private postsService: PostsService) {}
   @Get("posts")
-  findAll(): string {
-    return "this method returns all posts";
+  async findAll(): Promise<PostI[]> {
+    return this.postsService.findAll();
   }
 
   @Post("posts")
-  create(@Body() createPostDto: CreatePostDto): string {
-    return "this method creates a post";
+  async create(@Body() createPostDto: CreatePostDto) {
+    this.postsService.create(createPostDto);
   }
 
   @Patch("posts")
-  edit(@Body() editPostDto: EditPostDto): string {
-    return "this method edits a post";
+  async edit(@Body() editPostDto: EditPostDto) {
+    this.postsService.edit(editPostDto);
   }
 
   @Get("post/:id")
-  findOne(@Param("id") id: string): string {
-    return `this method returns the post with id ${id}`;
+  async findOne(@Param("id") id: string): Promise<PostI> {
+    return this.postsService.findOne(id);
   }
 
   @Post("post/:id")
-  addComment(
+  async addComment(
     @Param("id") id: string,
     @Body() updateCommentDto: UpdateCommentsDto,
-  ): string {
-    return `this method add new comment to the post with id ${id}`;
+  ) {
+    this.postsService.addComment(id, updateCommentDto);
   }
 
   @Patch("post/:id")
-  updateLikes(
+  async updateLikes(
     @Param("id") id: string,
     @Body() updatelikesDto: UpdateLikesDto,
-  ): string {
-    return `this method updates the likes of the post with id ${id}`;
+  ) {
+    // this.updateLikes(id, updatelikesDto.likes);
   }
 
   @Delete("post/:id")
-  deletePost(@Param("id") id: string): string {
-    return `this method deletes the post with id ${id}`;
+  async deletePost(@Param("id") id: string) {
+    this.postsService.delete(id);
   }
 }
