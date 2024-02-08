@@ -50,7 +50,7 @@ export class PostsController {
     @Param("id") id: string,
     @Body() updatelikesDto: UpdateLikesDto,
   ) {
-    // this.updateLikes(id, updatelikesDto.likes);
+    this.postsService.updateLikes(id, updatelikesDto.likes);
   }
 
   @Delete("post/:id")

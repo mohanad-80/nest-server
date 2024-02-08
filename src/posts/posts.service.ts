@@ -1,6 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { Post } from "./interfaces/post.interface";
 import { UpdateCommentsDto } from "./dtos/update-comments.dto";
+import { CreatePostDto } from "./dtos/create-post.dto";
+import { EditPostDto } from "./dtos/edit-post.dto";
 
 @Injectable()
 export class PostsService {
@@ -10,11 +12,12 @@ export class PostsService {
     return this.posts;
   }
 
-  create(post: Post) {
-    this.posts.push(post);
+  create(post: CreatePostDto) {
+    // this.posts.push(post);
   }
 
-  edit(post: Partial<Post>) {
+  // Partial<Post> or EditPostDto?
+  edit(post: EditPostDto) {
     for (let i = 0; i < this.posts.length; i++) {
       if (this.posts[i].id == post.id) {
         this.posts[i] = {
