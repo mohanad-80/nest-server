@@ -12,33 +12,32 @@ import { EditPostDto } from "./dtos/edit-post.dto";
 import { UpdateCommentsDto } from "./dtos/update-comments.dto";
 import { UpdateLikesDto } from "./dtos/update-likes.dto";
 import { PostsService } from "./posts.service";
-import { Post as PostI } from "./interfaces/post.interface";
 
 @Controller()
 export class PostsController {
   constructor(private postsService: PostsService) {}
   @Get("posts")
-  async findAll(): Promise<PostI[]> {
+  findAll() {
     return this.postsService.findAll();
   }
 
   @Post("posts")
-  async create(@Body() createPostDto: CreatePostDto) {
+  create(@Body() createPostDto: CreatePostDto) {
     this.postsService.create(createPostDto);
   }
 
   @Patch("posts")
-  async edit(@Body() editPostDto: EditPostDto) {
+  edit(@Body() editPostDto: EditPostDto) {
     this.postsService.edit(editPostDto);
   }
 
   @Get("post/:id")
-  async findOne(@Param("id") id: string): Promise<PostI> {
+  findOne(@Param("id") id: string) {
     return this.postsService.findOne(id);
   }
 
   @Post("post/:id")
-  async addComment(
+  addComment(
     @Param("id") id: string,
     @Body() updateCommentDto: UpdateCommentsDto,
   ) {
@@ -46,15 +45,12 @@ export class PostsController {
   }
 
   @Patch("post/:id")
-  async updateLikes(
-    @Param("id") id: string,
-    @Body() updatelikesDto: UpdateLikesDto,
-  ) {
+  updateLikes(@Param("id") id: string, @Body() updatelikesDto: UpdateLikesDto) {
     this.postsService.updateLikes(id, updatelikesDto.likes);
   }
 
   @Delete("post/:id")
-  async deletePost(@Param("id") id: string) {
+  deletePost(@Param("id") id: string) {
     this.postsService.delete(id);
   }
 }
