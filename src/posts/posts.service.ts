@@ -63,6 +63,16 @@ export class PostsService {
   }
 
   async delete(id: string): Promise<void> {
-    await this.postsRepo.delete({ id });
+    const post = await this.postsRepo.findOne({ where: { id } });
+
+    if (!post) {
+      throw new Error("Post not found");
+    }
+
+    // Delete associated comments
+    await this.commentRepo.delete({ post: post });
+
+    // Delete the post itself
+    await this.postsRepo.delete(id);
   }
 }
