@@ -1,66 +1,78 @@
-import { Injectable } from "@nestjs/common";
-import { Post } from "./interfaces/post.interface";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { UpdateCommentsDto } from "./dtos/update-comments.dto";
 import { CreatePostDto } from "./dtos/create-post.dto";
 import { EditPostDto } from "./dtos/edit-post.dto";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Post as PostE } from "./post.entity";
+import { Repository } from "typeorm";
+import { Comment } from "./comment.entity";
 
 @Injectable()
 export class PostsService {
-  private readonly posts: Post[] = [];
+  constructor(
+    @InjectRepository(PostE) private postsRepo: Repository<PostE>,
+    @InjectRepository(Comment) private commentRepo: Repository<Comment>,
+  ) {}
 
-  findAll() {
-    return this.posts;
+  async findAll(): Promise<PostE[]> {
+    const posts = await this.postsRepo.find();
+    return posts;
   }
 
-  create(post: CreatePostDto) {
-    // this.posts.push(post);
+  async create(post: CreatePostDto): Promise<void> {
+    const newPost = this.postsRepo.create(post);
+    await this.postsRepo.save(newPost);
   }
 
-  // Partial<Post> or EditPostDto?
-  edit(post: EditPostDto) {
-    for (let i = 0; i < this.posts.length; i++) {
-      if (this.posts[i].id == post.id) {
-        this.posts[i] = {
-          ...this.posts[i],
-          ...post,
-        };
-        return;
-      }
+  async edit(post: EditPostDto): Promise<void> {
+    await this.postsRepo.update({ id: post.id }, post);
+  }
+
+  async findOne(id: string): Promise<PostE | null> {
+    let post = await this.postsRepo.findOne({
+      where: { id },
+      relations: ["comments"],
+    });
+    if (!post) {
+      throw new NotFoundException("Post not found");
     }
+    return post;
   }
 
-  findOne(id: string) {
-    for (let i = 0; i < this.posts.length; i++) {
-      if (this.posts[i].id == id) {
-        return this.posts[i];
-      }
+  async addComment(id: string, comment: UpdateCommentsDto): Promise<void> {
+    const post = await this.postsRepo.findOneBy({ id });
+    if (!post) {
+      throw new NotFoundException("Post not found");
     }
+
+    const newComment = this.commentRepo.create({
+      ...comment,
+      post: post,
+    });
+
+    await this.commentRepo.save(newComment);
   }
 
-  addComment(id: string, comment: UpdateCommentsDto) {
-    for (let i = 0; i < this.posts.length; i++) {
-      if (this.posts[i].id == id) {
-        this.posts[i].comments.push(comment);
-        return;
-      }
+  async updateLikes(id: string, likes: number): Promise<void> {
+    const post = await this.postsRepo.findOneBy({ id });
+    if (!post) {
+      throw new NotFoundException("Post not found");
     }
+    post.likes = likes;
+    await this.postsRepo.save(post);
   }
 
-  updateLikes(id: string, likes: number) {
-    for (let i = 0; i < this.posts.length; i++) {
-      if (this.posts[i].id == id) {
-        this.posts[i].likes = likes;
-        return;
-      }
-    }
-  }
+  async delete(id: string): Promise<void> {
+    const post = await this.postsRepo.findOne({ where: { id } });
 
-  delete(id: string) {
-    for (let i = 0; i < this.posts.length; i++) {
-      if (this.posts[i].id == id) {
-        this.posts.splice(i, 1);
-        return;
-      }
+    if (!post) {
+      throw new Error("Post not found");
     }
+
+    // Delete associated comments
+    await this.commentRepo.delete({ post: post });
+
+    // Delete the post itself
+    await this.postsRepo.delete(id);
   }
 }
