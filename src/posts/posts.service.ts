@@ -5,10 +5,14 @@ import { EditPostDto } from "./dtos/edit-post.dto";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Post as PostE } from "./post.entity";
 import { Repository } from "typeorm";
+import { Comment } from "./comment.entity";
 
 @Injectable()
 export class PostsService {
-  constructor(@InjectRepository(PostE) private postsRepo: Repository<PostE>) {}
+  constructor(
+    @InjectRepository(PostE) private postsRepo: Repository<PostE>,
+    @InjectRepository(Comment) private commentRepo: Repository<Comment>,
+  ) {}
 
   async findAll(): Promise<PostE[]> {
     const posts = await this.postsRepo.find();
@@ -25,10 +29,13 @@ export class PostsService {
   }
 
   async findOne(id: string): Promise<PostE | null> {
-    let post = await this.postsRepo.findOneBy({ id });
+    let post = await this.postsRepo.findOne({
+      where: { id },
+      relations: ["comments"],
+    });
     if (!post) {
       throw new NotFoundException("Post not found");
-    } 
+    }
     return post;
   }
 
@@ -37,8 +44,13 @@ export class PostsService {
     if (!post) {
       throw new NotFoundException("Post not found");
     }
-    post.comments.push(comment);
-    await this.postsRepo.save(post);
+
+    const newComment = this.commentRepo.create({
+      ...comment,
+      post: post,
+    });
+
+    await this.commentRepo.save(newComment);
   }
 
   async updateLikes(id: string, likes: number): Promise<void> {

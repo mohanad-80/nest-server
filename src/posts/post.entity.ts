@@ -1,5 +1,11 @@
-import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
-import { Comment as CommentI } from "./interfaces/comment.interface";
+import {
+  BeforeInsert,
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import { Comment } from "./comment.entity";
 
 @Entity()
 export class Post {
@@ -27,8 +33,8 @@ export class Post {
   @Column()
   views: Number;
 
-  @Column({ type: "json" })
-  comments: Array<CommentI>;
+  @OneToMany(() => Comment, (comment) => comment.post)
+  comments: Comment[];
 
   @BeforeInsert()
   setDefaultValues() {
